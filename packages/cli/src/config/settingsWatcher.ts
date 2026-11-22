@@ -203,14 +203,19 @@ export class SettingsWatcher {
     const dir = path.dirname(settingsPath);
     const parentDir = path.dirname(dir);
     const dirBasename = path.basename(dir);
+    const resolvedParentDir = path.resolve(parentDir);
     const gen = this.bumpGeneration(scope);
 
     try {
       const watcher = watchFs(parentDir, {
         ignoreInitial: true,
         depth: 0,
+        // chokidar can report the watched root in a different separator form
+        // than path.dirname produced (forward slashes on Windows); comparing
+        // raw strings ignores the root itself and kills the bootstrap.
         ignored: (filePath: string) =>
-          filePath !== parentDir && path.basename(filePath) !== dirBasename,
+          path.resolve(filePath) !== resolvedParentDir &&
+          path.basename(filePath) !== dirBasename,
       })
         .on('all', (_event: string, changedPath: string) => {
           if (this.watchGeneration.get(scope) !== gen) return;

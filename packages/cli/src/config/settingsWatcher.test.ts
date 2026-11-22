@@ -908,6 +908,11 @@ describe('SettingsWatcher', () => {
       // Watch root and the target dir are allowed (not ignored).
       expect(ignored!('/home/user')).toBe(false);
       expect(ignored!('/home/user/.qwen')).toBe(false);
+      // The root must also be allowed in other normalized forms: chokidar
+      // reports it with forward slashes on Windows while path.dirname
+      // produced backslashes, and ignoring the root kills the bootstrap.
+      expect(ignored!('/home/user/')).toBe(false);
+      expect(ignored!('/home/./user')).toBe(false);
       // Unrelated top-level entries are ignored.
       expect(ignored!('/home/user/Documents')).toBe(true);
       expect(ignored!('/home/user/.bashrc')).toBe(true);
